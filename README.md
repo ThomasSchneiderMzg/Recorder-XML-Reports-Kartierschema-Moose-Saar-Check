@@ -1,4 +1,4 @@
-# Mooskartierschema Saar Check.
+# Mooskartierschema Saar Check
 
 XML-Report für Recorder D
 
