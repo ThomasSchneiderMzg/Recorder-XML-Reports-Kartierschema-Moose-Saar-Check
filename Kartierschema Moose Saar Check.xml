@@ -1,0 +1,266 @@
+<?xml version="1.0" ?>
+<CustomReport title="Mooskartierschema Saar Check" menupath="Plausibilitäts- und Fehlerprüfung" 
+description="Prüft Einträge zu Trägergehölz, Substrattyp und Nachweismethode auf Kompatibilität und Plausibilität.  
+Die Spalte Kommentar erläutert den möglicherweise fehlerhaften Eintrag, über die Spalte 'Beobachtungs-Schlüssel' lässt sich zur Beobachtung verzweigen
+v01 vom 29.12.2020 Thomas Schneider
+">
+
+<SQL>
+
+    IF OBJECT_ID('tempdb..#aufnahmemethode_moose') IS NOT NULL
+        DROP TABLE #aufnahmemethode_moose
+    IF OBJECT_ID('tempdb..#nachweismethode_moose') IS NOT NULL
+        DROP TABLE #nachweismethode_moose
+    IF OBJECT_ID('tempdb..#substrattyp_moose') IS NOT NULL
+        DROP TABLE #substrattyp_moose
+    IF OBJECT_ID('tempdb..#trägergehölz_moose') IS NOT NULL
+        DROP TABLE #trägergehölz_moose
+    IF OBJECT_ID('tempdb..#fertilität_moose') IS NOT NULL
+        DROP TABLE #fertilität_moose
+    IF OBJECT_ID('tempdb..#TMP_RESULTS') IS NOT NULL
+        DROP TABLE #TMP_RESULTS
+
+      
+    
+    CREATE TABLE #aufnahmemethode_moose  
+       (name VARCHAR(100) COLLATE SQL_Latin1_General_CP1_CI_AS)
+    INSERT INTO #aufnahmemethode_moose VALUES ('Bryolog. Kartierung')
+    INSERT INTO #aufnahmemethode_moose VALUES ('BryoKart Kurznotiz')
+    INSERT INTO #aufnahmemethode_moose VALUES ('BryoKart Einzelmeldung')
+    INSERT INTO #aufnahmemethode_moose VALUES ('BryoKart Punktdaten')
+    INSERT INTO #aufnahmemethode_moose VALUES ('Feldbeobachtung')
+    
+    CREATE TABLE #nachweismethode_moose  
+       (kurzname varchar(20) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        langname varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS)
+    INSERT INTO #nachweismethode_moose VALUES ('G', 'Geländebeobachtung')
+    INSERT INTO #nachweismethode_moose VALUES ('!', 'Mikroskopiert')
+    INSERT INTO #nachweismethode_moose VALUES ('H', 'Herbarbeleg')
+    INSERT INTO #nachweismethode_moose VALUES ('keine Angabe', 'keine Angabe')
+    
+    CREATE TABLE #substrattyp_moose  
+       (kurzname VARCHAR(10) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        langname VARCHAR(100) COLLATE SQL_Latin1_General_CP1_CI_AS)
+    
+    INSERT INTO #substrattyp_moose VALUES ('W', 'Wasser')
+    INSERT INTO #substrattyp_moose VALUES ('Bsc', 'Schlamm')
+    INSERT INTO #substrattyp_moose VALUES ('Be', 'Erde')
+    INSERT INTO #substrattyp_moose VALUES ('Ben', 'Erde, nass')
+    INSERT INTO #substrattyp_moose VALUES ('Bef', 'Erde, feucht')
+    INSERT INTO #substrattyp_moose VALUES ('Bet', 'Erde, frisch - trocken')
+    INSERT INTO #substrattyp_moose VALUES ('BeW', 'Wurzelteller')
+    INSERT INTO #substrattyp_moose VALUES ('Bed', 'Rohhumus, Torf, Detritus')
+    INSERT INTO #substrattyp_moose VALUES ('BedN', 'Nadelstreu')
+    INSERT INTO #substrattyp_moose VALUES ('BedL', 'Laubstreu/Moder')
+    INSERT INTO #substrattyp_moose VALUES ('Oth', 'Totes Holz')
+    INSERT INTO #substrattyp_moose VALUES ('Olh', 'Lebende Bäume, Sträucher')
+    INSERT INTO #substrattyp_moose VALUES ('OlhSt', 'Lebende Bäume, Stamm')
+    INSERT INTO #substrattyp_moose VALUES ('OlhK', 'Lebende Bäume, Kronenbereich')
+    INSERT INTO #substrattyp_moose VALUES ('OlhS', 'Stammablaufschürze')
+    INSERT INTO #substrattyp_moose VALUES ('OlhB', 'Stammbasis')
+    INSERT INTO #substrattyp_moose VALUES ('Ofm', 'Flechten, Moose')
+    INSERT INTO #substrattyp_moose VALUES ('Off', 'Farnstöcke')
+    INSERT INTO #substrattyp_moose VALUES ('Ogl', 'Kot, Gewölle, Tierleichen')
+    INSERT INTO #substrattyp_moose VALUES ('Mtk', 'Kalktuff, aktiv')
+    INSERT INTO #substrattyp_moose VALUES ('Mrk', 'Gesteinsrohboden, kalkreich')
+    INSERT INTO #substrattyp_moose VALUES ('Mra', 'Gesteinsrohboden, kalkarm')
+    INSERT INTO #substrattyp_moose VALUES ('Mkn', 'Kalkr.Gestein, nass')
+    INSERT INTO #substrattyp_moose VALUES ('Mkf', 'Kalkr.Gestein , feucht')
+    INSERT INTO #substrattyp_moose VALUES ('Mkt', 'Kalkr. Gestein, frisch-trocken')
+    INSERT INTO #substrattyp_moose VALUES ('Msn', 'Kalkarmes Gestein, nass')
+    INSERT INTO #substrattyp_moose VALUES ('Msf', 'Kalkarmes Gestein, feucht')
+    INSERT INTO #substrattyp_moose VALUES ('Mst', 'Kalkarmes Gestein, frisch - trocken')
+    INSERT INTO #substrattyp_moose VALUES ('So', 'Sonstiges Substrat')
+    
+    CREATE TABLE #trägergehölz_moose  
+       (name VARCHAR(100) COLLATE SQL_Latin1_General_CP1_CI_AS)
+    
+    INSERT INTO #trägergehölz_moose VALUES ('Abies alba')
+    INSERT INTO #trägergehölz_moose VALUES ('Acer campestre')
+    INSERT INTO #trägergehölz_moose VALUES ('Acer platanoides')
+    INSERT INTO #trägergehölz_moose VALUES ('Acer pseudoplatanus')
+    INSERT INTO #trägergehölz_moose VALUES ('Aesculus hippoc.')
+    INSERT INTO #trägergehölz_moose VALUES ('Alnus glutinosa')
+    INSERT INTO #trägergehölz_moose VALUES ('Betula pendula')
+    INSERT INTO #trägergehölz_moose VALUES ('Betula pubescens')
+    INSERT INTO #trägergehölz_moose VALUES ('Betula spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Carpinus betulus')
+    INSERT INTO #trägergehölz_moose VALUES ('Castanea sativa')
+    INSERT INTO #trägergehölz_moose VALUES ('Cornus sanguinea')
+    INSERT INTO #trägergehölz_moose VALUES ('Corylus avellana')
+    INSERT INTO #trägergehölz_moose VALUES ('Cotoneaster spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Crataegus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Cydonia oblonga')
+    INSERT INTO #trägergehölz_moose VALUES ('Cytisus scoparius')
+    INSERT INTO #trägergehölz_moose VALUES ('Fagus sylvatica')
+    INSERT INTO #trägergehölz_moose VALUES ('Fraxinus excelsior')
+    INSERT INTO #trägergehölz_moose VALUES ('Hedera helix')
+    INSERT INTO #trägergehölz_moose VALUES ('Ilex aquifolia')
+    INSERT INTO #trägergehölz_moose VALUES ('Juglans nigra')
+    INSERT INTO #trägergehölz_moose VALUES ('Juglans regia')
+    INSERT INTO #trägergehölz_moose VALUES ('Larix spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Malus domestica')
+    INSERT INTO #trägergehölz_moose VALUES ('Malus sylvestris')
+    INSERT INTO #trägergehölz_moose VALUES ('Picea abies')
+    INSERT INTO #trägergehölz_moose VALUES ('Picea sitchensis')
+    INSERT INTO #trägergehölz_moose VALUES ('Pinus nigra')
+    INSERT INTO #trägergehölz_moose VALUES ('Pinus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Pinus sylvestris')
+    INSERT INTO #trägergehölz_moose VALUES ('Populus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Populus tremula')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus avium')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus padus')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus serotina')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus cerasifera')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus domestica')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Prunus spinosa')
+    INSERT INTO #trägergehölz_moose VALUES ('Pseudotsuga menz.')
+    INSERT INTO #trägergehölz_moose VALUES ('Pyrus communis')
+    INSERT INTO #trägergehölz_moose VALUES ('Pyrus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Quercus petraea')
+    INSERT INTO #trägergehölz_moose VALUES ('Quercus robur')
+    INSERT INTO #trägergehölz_moose VALUES ('Quercus rubra')
+    INSERT INTO #trägergehölz_moose VALUES ('Quercus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Robinia pseudacacia')
+    INSERT INTO #trägergehölz_moose VALUES ('Salix spec. B')
+    INSERT INTO #trägergehölz_moose VALUES ('Salix spec. S')
+    INSERT INTO #trägergehölz_moose VALUES ('Salix caprea')
+    INSERT INTO #trägergehölz_moose VALUES ('Sambucus nigra')
+    INSERT INTO #trägergehölz_moose VALUES ('Sambucus racemosus')
+    INSERT INTO #trägergehölz_moose VALUES ('Sonstiges Laubgh.')
+    INSERT INTO #trägergehölz_moose VALUES ('Sonstiges Nadelgh.')
+    INSERT INTO #trägergehölz_moose VALUES ('Sorbus aria agg.')
+    INSERT INTO #trägergehölz_moose VALUES ('Sorbus aucuparia')
+    INSERT INTO #trägergehölz_moose VALUES ('Sorbus torminalis')
+    INSERT INTO #trägergehölz_moose VALUES ('Sorbus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Tilia spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Ulmus glabra')
+    INSERT INTO #trägergehölz_moose VALUES ('Ulmus laevis')
+    INSERT INTO #trägergehölz_moose VALUES ('Ulmus minor')
+    INSERT INTO #trägergehölz_moose VALUES ('Ulmus spec.')
+    INSERT INTO #trägergehölz_moose VALUES ('Viburnum lantana')
+    INSERT INTO #trägergehölz_moose VALUES ('Vitis vinifera')
+    
+    CREATE TABLE #fertilität_moose  
+       (kurzname varchar(10) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        langname varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS)
+    
+    INSERT INTO #fertilität_moose VALUES ('cs', 'mit Sporopyhten')
+    INSERT INTO #fertilität_moose VALUES ('cp', 'mit Perichätium')
+    INSERT INTO #fertilität_moose VALUES ('cg', 'mit Gemmen')
+    INSERT INTO #fertilität_moose VALUES ('ss', 'ohne Sporopyhten')
+    INSERT INTO #fertilität_moose VALUES ('sp', 'ohne Perichätium')
+    INSERT INTO #fertilität_moose VALUES ('sg', 'ohne Gemmen')
+
+
+    CREATE TABLE #TMP_RESULTS  
+       (
+        [TAXON_OCCURRENCE_KEY] char(16) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        [SAMPLE_KEY] char(16) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        [SURVEY_NAME] varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        [DATA] varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        [MEASUREMENT_QUALIFIER_KEY] char(16) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        [MEASUREMENT_UNIT_KEY] char(16) COLLATE SQL_Latin1_General_CP1_CI_AS,
+        [COMMENT] varchar(4000) COLLATE SQL_Latin1_General_CP1_CI_AS
+       )
+<Where keytype="Default">
+
+    INSERT INTO #TMP_RESULTS  
+    SELECT 
+    toc.TAXON_OCCURRENCE_KEY,
+    s.SAMPLE_KEY, 
+    sv.ITEM_NAME,
+    tod.DATA,
+    tod.MEASUREMENT_QUALIFIER_KEY,
+    tod.MEASUREMENT_UNIT_KEY,
+    NULL
+    FROM  Survey SV
+    INNER JOIN Survey_Event SE ON SE.Survey_Key = SV.Survey_Key
+    INNER JOIN [Sample] S ON S.Survey_Event_Key =SE.Survey_Event_Key
+    INNER JOIN Sample_type ST ON S.Sample_Type_Key = ST.Sample_Type_Key
+    INNER JOIN Taxon_Occurrence TOC ON TOC.Sample_key = S.Sample_Key
+    INNER JOIN TAXON_OCCURRENCE_DATA tod on tod.TAXON_OCCURRENCE_KEY = toc.TAXON_OCCURRENCE_KEY
+    INNER JOIN Taxon_Determination TDET ON TDET.Taxon_Occurrence_Key = TOC.Taxon_Occurrence_Key
+    INNER JOIN Taxon_List_Item TLI ON TLI.Taxon_List_Item_Key = TDET.Taxon_List_Item_Key
+    INNER JOIN Taxon_Version TV ON TV.Taxon_Version_Key = TLI.Taxon_Version_Key
+                    WHERE NOT toc.VERIFIED=1
+                          AND toc.CONFIDENTIAL=0
+                          AND toc.ZERO_ABUNDANCE=0 
+                          AND toc.CHECKED=1
+                          AND NOT s.SPATIAL_REF_SYSTEM in ('QQQ','QYX')
+                          AND tv.OUTPUT_GROUP_KEY IN ('NHMSYS0000080061','NHMSYS0000080083','NHMSYS0000080090')  --nur Moose!
+                          AND tod.MEASUREMENT_QUALIFIER_KEY IN ('BFNSYS0000000131','BFNSYS0000000130')
+                          AND tod.MEASUREMENT_UNIT_KEY IN ('BFNSYS0000000044','BFNSYS0000000043','BFNSYS0000000042')
+
+    DELETE FROM #TMP_RESULTS 
+    WHERE DATA IN (SELECT kurzname from #substrattyp_moose)
+      AND MEASUREMENT_QUALIFIER_KEY = 'BFNSYS0000000130'
+      AND MEASUREMENT_UNIT_KEY = 'BFNSYS0000000042'
+
+
+    DELETE FROM #TMP_RESULTS 
+    WHERE DATA IN (SELECT name from #trägergehölz_moose)
+      AND MEASUREMENT_QUALIFIER_KEY = 'BFNSYS0000000130'
+      AND MEASUREMENT_UNIT_KEY = 'BFNSYS0000000043'
+
+    DELETE FROM #TMP_RESULTS 
+    WHERE DATA IN (SELECT kurzname from #fertilität_moose)
+      AND MEASUREMENT_QUALIFIER_KEY = 'BFNSYS0000000131'
+      AND MEASUREMENT_UNIT_KEY = 'BFNSYS0000000044'
+
+    UPDATE #TMP_RESULTS SET COMMENT = 'Substrattyp Moose ungültig oder Substrattyp Moose kann nicht in FFIpS importiert werden' 
+    WHERE MEASUREMENT_QUALIFIER_KEY = 'BFNSYS0000000130' AND MEASUREMENT_UNIT_KEY = 'BFNSYS0000000042'
+
+    UPDATE #TMP_RESULTS SET COMMENT = 'Trägergehölz Moose ungültig oder Trägergehölz Moose kann nicht in FFIpS importiert werden' 
+    WHERE MEASUREMENT_QUALIFIER_KEY = 'BFNSYS0000000130' AND MEASUREMENT_UNIT_KEY = 'BFNSYS0000000043'
+
+    UPDATE #TMP_RESULTS SET COMMENT = 'Fertilität Moose ungültig oder Fertilität Moose kann nicht in FFIpS importiert werden' 
+    WHERE MEASUREMENT_QUALIFIER_KEY = 'BFNSYS0000000131' AND MEASUREMENT_UNIT_KEY = 'BFNSYS0000000044'
+
+    
+
+    INSERT INTO #TMP_RESULTS  
+    SELECT 
+    toc.TAXON_OCCURRENCE_KEY,
+    s.SAMPLE_KEY, 
+    sv.ITEM_NAME,
+    rt.SHORT_NAME as DATA,
+    NULL,
+    NULL,
+    'Nachweismethode Moose ungültig oder Nachweismethode Moose kann nicht in FFIpS importiert werden'
+    FROM  Survey SV
+    INNER JOIN Survey_Event SE ON SE.Survey_Key = SV.Survey_Key
+    INNER JOIN [Sample] S ON S.Survey_Event_Key =SE.Survey_Event_Key
+    INNER JOIN Sample_type ST ON S.Sample_Type_Key = ST.Sample_Type_Key
+    INNER JOIN Taxon_Occurrence TOC ON TOC.Sample_key = S.Sample_Key
+    INNER JOIN RECORD_TYPE rt on rt.RECORD_TYPE_KEY = toc.RECORD_TYPE_KEY
+    INNER JOIN Taxon_Determination TDET ON TDET.Taxon_Occurrence_Key = TOC.Taxon_Occurrence_Key
+    INNER JOIN Taxon_List_Item TLI ON TLI.Taxon_List_Item_Key = TDET.Taxon_List_Item_Key
+    INNER JOIN Taxon_Version TV ON TV.Taxon_Version_Key = TLI.Taxon_Version_Key
+                    WHERE NOT toc.VERIFIED=1
+                          AND toc.CONFIDENTIAL=0
+                          AND toc.ZERO_ABUNDANCE=0 
+                          AND toc.CHECKED=1
+                          AND NOT s.SPATIAL_REF_SYSTEM in ('QQQ','QYX')
+                          AND tv.OUTPUT_GROUP_KEY IN ('NHMSYS0000080061','NHMSYS0000080083','NHMSYS0000080090')  --nur Moose!
+                          AND rt.SHORT_NAME NOT IN (SELECT kurzname from #nachweismethode_moose)
+
+    SELECT 
+    TAXON_OCCURRENCE_KEY,
+    SURVEY_NAME,
+    DATA,
+    COMMENT
+    FROM #TMP_RESULTS ORDER BY TAXON_OCCURRENCE_KEY, COMMENT
+
+
+</Where>
+</SQL>
+
+<Columns>
+<Column name="TAXON_OCCURRENCE_KEY" caption="Beobachtungs-Schlüssel" tablename="taxon_occurrence" width="150" keycolumn="taxon_occurrence_key" position="1"/>
+<Column name="SURVEY_NAME" caption="Projekt" width="150" position="2" />
+<Column name="Data" caption="Eintrag" width="150" position="3" />
+<Column name="COMMENT" caption="Kommentar" width="400" position="4" />
+</Columns>
+</CustomReport>
